@@ -1,17 +1,21 @@
 import { env } from './config';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
-import { PineconeStore } from 'langchain/vectorstores/pinecone';
-import { PineconeClient } from '@pinecone-database/pinecone';
+import { OpenAIEmbeddings } from '@langchain/openai';
+import { PineconeStore } from "@langchain/pinecone";
+import {Pinecone} from '@pinecone-database/pinecone';
 
 export async function embedAndStoreDocs(
-  client: PineconeClient,
+  client: Pinecone,
   // @ts-ignore docs type error
   docs: Document<Record<string, any>>[]
 ) {
+  
+//  const client = new Pinecone({apiKey: process.env.PINECONE_API_KEY!,});
+
   /*create and store the embeddings in the vectorStore*/
   try {
+
     const embeddings = new OpenAIEmbeddings();
-    const index = client.Index(env.PINECONE_INDEX_NAME);
+    const index = client.Index(process.env.PINECONE_INDEX_NAME!);
 
     //embed the PDF documents
     await PineconeStore.fromDocuments(docs, embeddings, {
@@ -25,10 +29,10 @@ export async function embedAndStoreDocs(
 }
 
 // Returns vector-store handle to be used a retrievers on langchains
-export async function getVectorStore(client: PineconeClient) {
+export async function getVectorStore(client: Pinecone) {
   try {
     const embeddings = new OpenAIEmbeddings();
-    const index = client.Index(env.PINECONE_INDEX_NAME);
+    const index = client.Index(process.env.PINECONE_INDEX_NAME!);
 
     const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
       pineconeIndex: index,
@@ -41,3 +45,4 @@ export async function getVectorStore(client: PineconeClient) {
     throw new Error('Something went wrong while getting vector store !');
   }
 }
+
